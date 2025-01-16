@@ -1,7 +1,10 @@
 const cellDivs = Array.from(document.getElementsByClassName('cell'));
+const messageDiv = document.getElementById('message');
+const resetBtn = document.getElementById('reset-game');
 
-let nextPlayer = 0;
-let symbols = ['X', 'O'];
+let nextPlayer, symbols, playerWon, moveCount;
+
+initGame();
 
 const winningCombinations = [
     ['00', '01', '02'], // top row
@@ -20,14 +23,21 @@ cellDivs.forEach( cellDiv => {
     
     cellDiv.addEventListener('click', e => {
 
-        if ( !e.target.innerText ) {
+        if ( !e.target.innerText && !playerWon ) {
+
+            moveCount++;
 
             const move = e.target.dataset.y + e.target.dataset.x;
             gameState[nextPlayer].push(move);
 
             e.target.innerText = symbols[nextPlayer];
 
-            console.log(isGameOver(gameState[nextPlayer]));
+            if ( hasPlayerWon(gameState[nextPlayer]) ) {
+                playerWon = true;
+                messageDiv.innerText = `${symbols[nextPlayer]} VÕITIS MÄNGU!`;
+            } else if ( moveCount == 9 ) {
+                messageDiv.innerText = `MÄNG JÄI VIIKI!`;
+            }
 
             nextPlayer = Number(!nextPlayer);
 
@@ -37,16 +47,34 @@ cellDivs.forEach( cellDiv => {
 
 });
 
-function isGameOver ( moves ) {
+resetBtn.addEventListener('click', e => {
+    initGame();
+});
 
-    let isGameOver = false;
+function initGame () {
+
+    nextPlayer = 0;
+    symbols = ['X', 'O'];
+    playerWon = false;
+    moveCount = 0;
+    
+}
+
+function hasPlayerWon ( moves ) {
+
+    let hasPlayerWon = false;
 
     winningCombinations.forEach( c => {
         if ( c.every(m => moves.includes(m)) ) {
-            isGameOver = true;
+            hasPlayerWon = true;
+            
+            c.forEach( ([y, x]) => {
+                document.querySelector(`.cell[data-y="${y}"][data-x="${x}"]`).classList.add('winning');
+            });
+
         }
     });
     
-    return isGameOver;
+    return hasPlayerWon;
 
 }
